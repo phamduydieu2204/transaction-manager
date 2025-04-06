@@ -1,45 +1,56 @@
-const SHEET_ID = '1pl7DwxtXTeVqKmfQl1UdIS7A2WcFl2sjCrkOqOegv9U';
-const API_KEY = 'AIzaSyDt9wLPmhQBYN2OKUnO3tXqiZdo6DCoS0g';
-const BASE_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlIBUV-wJDSUejBk80mFLLoMhtRm0eoCiY3JEn4Bfxp0_MPS_e6ssXKPuU6_bpfqkN6Q/exec';
 
-async function fetchSheetData(sheetName) {
-    const response = await fetch(`${BASE_URL}/${sheetName}!A1:Z?key=${API_KEY}`);
-    const data = await response.json();
-    return data.values;
-}
-
-
-let loginAttempts = 0;
-async function login() {
+function login() {
     const employeeId = document.getElementById('employeeId').value;
     const password = document.getElementById('password').value;
-    const employees = await fetchSheetData('Danh sách nhân viên');
-    const user = employees.find(row => row[0] === employeeId && row[2] === password);
-    if (user && user[4] === 'ON') {
-        localStorage.setItem('loggedInUser', JSON.stringify({ id: user[0], role: user[3] }));
+    if (employeeId && password) {
+        // Lưu thông tin đăng nhập tạm thời (sẽ cải thiện sau)
+        localStorage.setItem('loggedInUser', JSON.stringify({ id: employeeId }));
         window.location.href = 'dashboard.html';
     } else {
-        loginAttempts++;
-        document.getElementById('error').textContent = 'Sai thông tin hoặc tài khoản bị khóa';
-        if (loginAttempts >= 5) {
-            // Gọi Google Apps Script để cập nhật trạng thái OFF
-        }
+        document.getElementById('error').innerText = 'Vui lòng nhập đầy đủ thông tin!';
     }
 }
 
-
-async function addTransaction() {
-    const form = document.getElementById('transactionForm');
+function addTransaction() {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    if (!loggedInUser) {
+        alert('Vui lòng đăng nhập trước!');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // Lấy dữ liệu từ form
+    const form = document.getElementById('transactionForm');
     const transactionId = `GD${Date.now()}`;
     const dateTime = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-    const data = [
-        transactionId,
-        dateTime,
-        form.transactionType.value,
-        form.customerName.value,
-        // Thêm các trường khác
-        loggedInUser.id
-    ];
-    // Gọi Google Apps Script để ghi dữ liệu vào sheet
+
+    const transactionData = {
+        transactionId: transactionId,
+        dateTime: dateTime,
+        transactionType: form.transactionType.value,
+        customerName: form.customerName.value,
+        email: form.email.value.toLowerCase(),
+        employeeId: loggedInUser.id
+        // Thêm các trường khác theo nhu cầu
+    };
+
+    // Gửi dữ liệu tới Google Apps Script
+    fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(transactionData),
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        mode: 'no-cors' // Quan trọng khi gọi từ GitHub Pages
+    })
+    .then(response => {
+        console.log('Gửi dữ liệu thành công');
+        alert('Thêm giao dịch thành công!');
+        form.reset(); // Xóa form sau khi gửi
+    })
+    .catch(error => {
+        console.error('Lỗi:', error);
+        alert('Có lỗi xảy ra!');
+    });
 }
