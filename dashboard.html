@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý giao dịch</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="tabs">
+        <button onclick="showTab('input')">Nhập liệu</button>
+        <button onclick="showTab('report')">Thống kê</button>
+    </div>
+    <div id="input" class="tab-content">
+        <h2>Nhập liệu</h2>
+        <form id="transactionForm">
+            <select id="transactionType" required>
+                <option value="Mua hàng">Mua hàng</option>
+                <option value="Đổi gói">Đổi gói</option>
+                <option value="Hoàn trả">Hoàn trả</option>
+            </select>
+            <input type="text" id="customerName" placeholder="Tên khách hàng" required>
+            <!-- Thêm các trường khác -->
+            <button type="button" onclick="addTransaction()">Thêm giao dịch</button>
+        </form>
+        <table id="transactionTable">
+            <thead>
+                <tr>
+                    <th>Mã GD</th><th>Khách hàng</th><th>Doanh thu</th><th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div id="report" class="tab-content" style="display: none;">
+        <h2>Thống kê</h2>
+        <!-- Thêm biểu đồ và báo cáo -->
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
